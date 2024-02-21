@@ -17,7 +17,8 @@ UPDATE tblPersonel SET TELEFON=REPLACE(TELEFON, '0212','0216')
 INSERT INTO tblDepartman(DEPARTMAN)
 VALUES ('Pazarlama')
 
---soru5: TCKimlik Numarasý ”12345678901” olan kiþinin Adýný ve Soyadýný “Ali Can” olarak deðiþtiriniz.UPDATE tblPersonel SET ADI='Ali', SOYADI='Can' WHERE TCKIMLIKNO='12345678901'
+--soru5: TCKimlik Numarasý ”12345678901” olan kiþinin Adýný ve Soyadýný “Ali Can” olarak deðiþtiriniz.
+UPDATE tblPersonel SET ADI='Ali', SOYADI='Can' WHERE TCKIMLIKNO='12345678901'
 
 --soru6: TC Kimlik Numarasý verilen bir personelin Ýki tarih arasýnda(örneðin 01.01.2017-31.12.2017) aldýðý toplam maaþý listeleyiniz.
 SELECT p.ADI, p.SOYADI, SUM(m.MAAS) AS ToplamMaaþ
@@ -46,3 +47,54 @@ SELECT D.DEPARTMAN, COUNT(P.personelID) AS [ÇALIÞAN SAYISI]
 FROM tblDepartman AS D, tblPersonel AS P
 WHERE P.departmanID = D.departmanID
 GROUP BY D.DEPARTMAN
+
+
+--------------------------EKSTRA SORULAR--------------------------
+
+--Personel tablosundaki tüm personellerin isimlerini ve soyisimlerini listeleyiniz.
+SELECT ADI,SOYADI FROM tblPersonel
+
+--Maaþý en yüksek olan personelin adýný, soyadýný ve maaþýný bulunuz.
+SELECT p.ADI, p.SOYADI, m.MAAS AS EnYuksekMaas 
+FROM tblPersonel AS p, tblMaas AS m
+WHERE p.personelID=m.personalID
+AND m.MAAS=(SELECT MAX(MAAS) FROM tblMaas)
+
+--Maaþý belirli bir tutarýn üzerinde olan personelleri listeleyiniz.
+SELECT p.ADI, p.SOYADI, m.MAAS
+FROM tblPersonel AS p, tblMaas AS m
+WHERE p.personelID = m.personalID
+AND m.MAAS > 40000
+ORDER BY m.MAAS 
+
+--Personel tablosundaki tüm departmanlarý listeleyiniz.
+SELECT DISTINCT d.DEPARTMAN
+FROM tblPersonel AS p, tblDepartman AS d
+WHERE p.departmanID = d.departmanID
+
+
+--Belirli bir departmanda çalýþan personelleri listeleyiniz.
+SELECT p.ADI, p.SOYADI, d.DEPARTMAN
+FROM tblPersonel AS p, tblDepartman AS d
+WHERE p.departmanID = d.departmanID
+AND DEPARTMAN='Finans'
+
+--Ýsimleri "Ahmet" ile baþlayan personelleri listeleyiniz.
+SELECT *
+FROM tblPersonel
+WHERE ADI LIKE '%Ahmet'
+
+--Telefon numarasý olmayan personelleri listeleyiniz.
+SELECT *
+FROM tblPersonel
+WHERE TELEFON IS NULL
+
+--Ýsimlerini, soyisimlerini ve e-posta adreslerini içeren bir rapor oluþturunuz.
+SELECT ADI, SOYADI, EPOSTA 
+FROM tblPersonel
+
+--Departman baþýna çalýþan personel sayýsýný bulunuz.
+SELECT  d.DEPARTMAN, COUNT(d.DEPARTMAN) AS [Çalýþan Sayýsý]
+FROM tblPersonel AS p, tblDepartman AS d
+WHERE p.departmanID = d.departmanID
+GROUP BY d.DEPARTMAN
