@@ -105,6 +105,13 @@ DersID INT FOREIGN KEY REFERENCES Ders(DersID),
 OgrenciID INT FOREIGN KEY REFERENCES Ogrenci(OgrenciID)
 )
 
+--INSERT INTO Ders(DersAdi)
+--VALUES ('Matematik')
+--INSERT INTO Ogrenci(OgrenciAdi)
+--VALUES ('Yusuf')
+--INSERT INTO DersOgrenci (DersID,OgrenciID)
+--VALUES (1,1)
+
 
 --Çoka çok iliþki örneði
 CREATE TABLE Muhendisler
