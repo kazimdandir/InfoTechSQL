@@ -113,18 +113,73 @@ UPDATE Tur SET turadi = 'KomediTest' WHERE turadi = 'Komedi'
 --ÖDEVLER
 
 --500 sayfadan daha az roman türünde kitap eklenemesin
+INSERT INTO Tur(turadi, gTarih)
+VALUES ('Roman', GETDATE())
 
+CREATE TRIGGER TRG_RomanSayfaSiniri ON Kitap
+FOR INSERT
+AS
+IF (EXISTS(SELECT * FROM Kitap WHERE turno = 4 AND sayfasayisi < 500))
+BEGIN
+	RAISERROR('500 sayfadan az roman türünde kitap eklenemez.', 1, 0)
+	ROLLBACK TRANSACTION
+END
 
+INSERT INTO Kitap(kitapadi, yazarno, turno, sayfasayisi, puan)
+VALUES ('Son Kuþlar', 1, 4, 144, 85)
 
 --Kitap tablosu güncellenirken eski sayfa sayýsý yeni sayfa sayýsýndan fazla olmak zorunda(sayfalarý yýrtýlmamýþ olacak)
+CREATE TRIGGER TRG_YeniSayfaSayisi ON Kitap
+AFTER UPDATE
+AS 
+BEGIN
+    IF EXISTS(SELECT * FROM inserted i INNER JOIN deleted d ON i.kitapno = d.kitapno WHERE i.sayfasayisi <= d.sayfasayisi)
+    BEGIN
+        RAISERROR('Yeni sayfa sayýsý eskisinden büyük olmalýdýr.', 1, 0)
+        ROLLBACK TRANSACTION
+    END
+END
 
-
+UPDATE Kitap SET sayfasayisi = 599 WHERE kitapno=1 --Þu an 600 olduðunu varsayarak hata verir
+UPDATE Kitap SET sayfasayisi = 601 WHERE kitapno=1 --Þu an 600 olduðunu varsayarak hata vermez
 
 --Öðrenci notlarýný tutan bir tablo olsun.
 --not1 -0 ile 100 arasý
 --not2
 --not3
 --ortalama
+ALTER TABLE Ogrenci ADD not1 TINYINT, 
+						not2 TINYINT,
+						not3 TINYINT,
+						ortalama DECIMAL
 
+CREATE TRIGGER TRG_OrtalamaHesapla ON Ogrenci
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF (EXISTS(SELECT * FROM inserted WHERE not1 NOT BETWEEN 0 AND 100
+                                      OR not2 NOT BETWEEN 0 AND 100
+                                      OR not3 NOT BETWEEN 0 AND 100))
+    BEGIN
+        RAISERROR('Not aralýklarý 0-100 arasý olmalýdýr', 1, 0)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+		UPDATE o
+		SET ortalama = (i.not1 + i.not2 + i.not3) / 3
+		FROM Ogrenci AS o
+		INNER JOIN inserted AS i ON o.ogrno = i.ogrno
+    END
+END
+
+INSERT INTO Ogrenci(ograd, ogrsoyad, cinsiyet, dtarih, sinif, not1, not2, not3)
+VALUES ('Fatih', 'Ertürk', 'Erkek', GETDATE()-10, '3d', 110, 50, 30) --Hata verir çünkü 0-100 arasý olmayan not var
+
+INSERT INTO Ogrenci(ograd, ogrsoyad, cinsiyet, dtarih, sinif, not1, not2, not3)
+VALUES ('Fatih', 'Ertürk', 'Erkek', GETDATE()-10, '3d', 90, 50, 30) --Hata vermez
+
+--DISABLE TRIGGER ALL ON Ogrenci
+--ENABLE TRIGGER TRG_OrtalamaHesapla ON Ogrenci
 
 --Proje E-Ticaret Veritabaný Oluþturma
