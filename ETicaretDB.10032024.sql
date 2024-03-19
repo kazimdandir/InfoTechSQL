@@ -84,6 +84,20 @@ UnitInStock SMALLINT
 )
 GO
 
+--Users
+CREATE TABLE tbl_Users
+(
+UserID INT IDENTITY PRIMARY KEY,
+UserName VARCHAR(50) NOT NULL UNIQUE,
+Email VARCHAR(100) NOT NULL UNIQUE,
+PasswordHash CHAR(64) NOT NULL,
+Name VARCHAR(50),
+Surname VARCHAR(50),
+RegisterDate DATETIME DEFAULT GETUTCDATE(),
+IsActive BIT DEFAULT 1
+)
+GO
+
 --Orders
 CREATE TABLE tbl_Orders
 (
@@ -92,12 +106,13 @@ CustomerID INT FOREIGN KEY REFERENCES tbl_Customers(CustomerID),
 SupplierID INT FOREIGN KEY REFERENCES tbl_Suppliers(SupplierID),
 OrderDate DATETIME,
 DeliveryDate DATETIME,
-CarrierID INT FOREIGN KEY REFERENCES tbl_Carriers(CarrierID)
+CarrierID INT FOREIGN KEY REFERENCES tbl_Carriers(CarrierID),
+UserID INT FOREIGN KEY REFERENCES tbl_Users(UserID)
 )
 GO
 
---OrderDetails
-CREATE TABLE tbl_OrderDetails
+--Basket
+CREATE TABLE tbl_Basket
 (
 OrderID INT FOREIGN KEY REFERENCES tbl_Orders(OrderID),
 ProductID INT FOREIGN KEY REFERENCES tbl_Products(ProductID),
@@ -106,7 +121,6 @@ Quantity SMALLINT,
 Discount REAL
 )
 GO
-
 
 --CREATE TRIGGERS
 
@@ -192,6 +206,15 @@ BEGIN
 END
 GO
 
+--Users
+CREATE TRIGGER trg_ListUsers ON tbl_Users
+AFTER INSERT 
+AS 
+BEGIN
+	SELECT * FROM tbl_Users 
+END
+GO
+
 --Orders
 CREATE TRIGGER trg_ListOrders ON tbl_Orders
 AFTER INSERT 
@@ -201,12 +224,12 @@ BEGIN
 END
 GO
 
---OrderDetails
-CREATE TRIGGER trg_ListOrderDetails ON tbl_OrderDetails
+--Basket
+CREATE TRIGGER trg_ListBasket ON tbl_Basket
 AFTER INSERT 
 AS 
 BEGIN
-	SELECT * FROM tbl_OrderDetails 
+	SELECT * FROM tbl_Basket
 END
 GO
 
@@ -228,7 +251,7 @@ BEGIN
 		p.UnitInStock
 	FROM tbl_Orders AS o
 		INNER JOIN tbl_Customers AS cu ON o.CustomerID = cu.CustomerID
-		INNER JOIN tbl_OrderDetails AS od ON o.OrderID = od.OrderID
+		INNER JOIN tbl_Basket AS od ON o.OrderID = od.OrderID
 		INNER JOIN tbl_Products AS p ON od.ProductID = p.ProductID
 		INNER JOIN tbl_Suppliers AS s ON s.SupplierID = o.SupplierID
 		INNER JOIN tbl_Carriers AS ca ON ca.CarrierID = o.CarrierID
@@ -456,18 +479,32 @@ VALUES
 	('Ahþap Oyuncak Seti', 2, 8, 8, 20, 150), ('Oyun Hamuru Seti', 4, 8, 8, 100, 200), ('Lego Seti', 1, 8, 8, 30, 180)
 GO
 
---Orders
-INSERT INTO tbl_Orders(CustomerID, SupplierID, OrderDate, DeliveryDate, CarrierID)
-VALUES (1, 7, '2021-07-10', '2021-07-20', 2), 
-	(8, 3, '2021-09-25', '2021-10-07', 1), 
-	(4, 2, '2022-02-14', '2022-02-21', 3), 
-	(11, 5, '2022-05-03', '2022-05-10', 4), 
-	(5, 4, '2023-01-18', '2023-01-25', 2), 
-	(9, 1, '2023-08-29', '2023-09-05', 3) 
+--Users
+INSERT INTO tbl_Users (UserName, Email, PasswordHash, Name, Surname, RegisterDate, IsActive)
+VALUES ('ahmet', 'ahmet@email.com', '$2y$10$d4234532342345', 'Ahmet', 'Yýlmaz', '2005-07-12', 1),
+	('ayþe', 'ayse@email.com', '$2y$10$d5345345345345', 'Ayþe', 'Öztürk', '2010-09-28', 1),
+	('john', 'john@email.com', '$2y$10$d6545645645645', 'John', 'Doe', '2002-03-17', 0),
+	('mary', 'mary@email.com', '$2y$10$d7656756756756', 'Mary', 'Green', '2008-11-05', 1),
+	('peter', 'peter@email.com', '$2y$10$d8767867867867', 'Peter', 'Parker', '2015-06-23', 1),
+	('sarah', 'sarah@email.com', '$2y$10$d9878978978978', 'Sarah', 'Connor', '2004-08-31', 1),
+	('michael', 'michael@email.com', '$2y$10$d1090109010901', 'Michael', 'Jordan', '2012-12-19', 1),
+	('jessica', 'jessica@email.com', '$2y$10$d1110111011101', 'Jessica', 'Alba', '2018-04-07', 0),
+	('david', 'david@email.com', '$2y$10$d1212121212121', 'David', 'Beckham', '2007-10-14', 1),
+	('emma', 'emma@email.com', '$2y$10$d1313131313131', 'Emma', 'Watson', '2019-01-30', 1)
 GO
 
---OrderDetails
-INSERT INTO tbl_OrderDetails(OrderID, ProductID, UnitPrice, Quantity, Discount)
+--Orders
+INSERT INTO tbl_Orders(CustomerID, SupplierID, OrderDate, DeliveryDate, CarrierID, UserID)
+VALUES (1, 7, '2021-07-10', '2021-07-20', 2, 3), 
+	(8, 3, '2021-09-25', '2021-10-07', 1, 5), 
+	(4, 2, '2022-02-14', '2022-02-21', 3, 2), 
+	(11, 5, '2022-05-03', '2022-05-10', 4, 7), 
+	(5, 4, '2023-01-18', '2023-01-25', 2, 10), 
+	(9, 1, '2023-08-29', '2023-09-05', 3, 8) 
+GO
+
+--Basket
+INSERT INTO tbl_Basket(OrderID, ProductID, UnitPrice, Quantity, Discount)
 VALUES (1, 19, 45, 50, 0.05),
 	(2, 8, 6, 37, 0),
 	(3, 6, 65, 41, 0.15),
@@ -480,7 +517,7 @@ GO
 --SELECTS
 SELECT * FROM tbl_Customers
 SELECT * FROM tbl_Orders
-SELECT * FROM tbl_OrderDetails
+SELECT * FROM tbl_Basket
 SELECT * FROM tbl_Products
 SELECT * FROM tbl_Categories
 SELECT * FROM tbl_Suppliers

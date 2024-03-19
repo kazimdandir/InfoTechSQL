@@ -141,7 +141,7 @@ BEGIN
 END
 
 UPDATE Kitap SET sayfasayisi = 599 WHERE kitapno=1 --Þu an 600 olduðunu varsayarak hata verir
-UPDATE Kitap SET sayfasayisi = 601 WHERE kitapno=1 --Þu an 600 olduðunu varsayarak hata vermez
+UPDATE Kitap SET sayfasayisi = 602 WHERE kitapno=1 --Þu an 600 olduðunu varsayarak hata vermez
 
 --Öðrenci notlarýný tutan bir tablo olsun.
 --not1 -0 ile 100 arasý
